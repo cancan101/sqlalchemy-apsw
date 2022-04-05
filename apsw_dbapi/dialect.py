@@ -1,17 +1,14 @@
 # pylint: disable=protected-access, abstract-method
 """A SQLALchemy dialect."""
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, Optional, Tuple
 
-import sqlalchemy.types
 from sqlalchemy.dialects.sqlite.base import SQLiteDialect
 from sqlalchemy.engine.url import URL
-from sqlalchemy.pool.base import _ConnectionFairy
 from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.sql.visitors import VisitableType
 from typing_extensions import TypedDict
 
 from . import db
-from .exceptions import ProgrammingError
 
 
 class SQLAlchemyColumn(TypedDict):
@@ -43,6 +40,9 @@ class APSWDialect(SQLiteDialect):
     # for more context.
     supports_statement_cache = True
 
+    # The base class:
+    # https://github.com/sqlalchemy/sqlalchemy/blob/main/lib/sqlalchemy/dialects/sqlite/base.py
+
     # TODO(cancan101): figure out if this is true
     # ``SQLiteDialect.colspecs`` has custom representations for objects that SQLite stores
     # as string (eg, timestamps). Since the our DB API driver returns them as
@@ -65,51 +65,3 @@ class APSWDialect(SQLiteDialect):
             "path": path,
             "isolation_level": self.isolation_level,
         }
-
-    # TODO(cancan101): figure out if we need these:
-    # def do_ping(self, dbapi_connection: _ConnectionFairy) -> bool:
-    #     return True
-
-    # def has_table(
-    #     self,
-    #     connection: _ConnectionFairy,
-    #     table_name: str,
-    #     schema: Optional[str] = None,
-    # ) -> bool:
-    #     """
-    #     Return true if a given table exists.
-    #     """
-    #     try:
-    #         pass
-    #     except ProgrammingError:
-    #         return False
-    #     return True
-
-    # needed for SQLAlchemy
-    # def _get_table_sql(  # pylint: disable=unused-argument
-    #     self,
-    #     connection: _ConnectionFairy,
-    #     table_name: str,
-    #     schema: Optional[str] = None,
-    #     **kwargs: Any,
-    # ) -> str:
-    #     return table.get_create_table(table_name)
-
-    # def get_columns(  # pylint: disable=unused-argument
-    #     self,
-    #     connection: _ConnectionFairy,
-    #     table_name: str,
-    #     schema: Optional[str] = None,
-    #     **kwargs: Any,
-    # ) -> List[SQLAlchemyColumn]:
-    #     return [
-    #         {
-    #             "name": column_name,
-    #             "type": getattr(sqlalchemy.types, field.type),
-    #             "nullable": True,
-    #             "default": None,
-    #             "autoincrement": "auto",
-    #             "primary_key": 0,
-    #         }
-    #         for column_name, field in columns.items()
-    #     ]
