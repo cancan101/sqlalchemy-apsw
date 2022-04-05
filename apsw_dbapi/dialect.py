@@ -32,7 +32,7 @@ class APSWDialect(SQLiteDialect):
     The dialect is based on the ``SQLiteDialect``, since we're using APSW.
     """
 
-    name = "sqlite-apsw"
+    name = "sqlite"
     driver = "apsw"
 
     # This is supported in ``SQLiteDialect``, and equally supported here. See
@@ -65,3 +65,6 @@ class APSWDialect(SQLiteDialect):
             "path": path,
             "isolation_level": self.isolation_level,
         }
+
+    def _get_server_version_info(self, connection):
+        return self.dbapi.sqlite_version_info

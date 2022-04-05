@@ -85,11 +85,27 @@ def check_result(method: CURSOR_METHOD) -> CURSOR_METHOD:
     return cast(CURSOR_METHOD, wrapper)
 
 
-# def get_type_code(type_name: str) -> DBAPIType:
-#     """
-#     Return a ``DBAPIType`` that corresponds to a type name.
-#     """
-#     return cast(DBAPIType, type_map.get(type_name, Blob))
+def get_type_code(type_name: Optional[str]) -> Optional[str]: # DBAPIType
+    """
+    Return a ``DBAPIType`` that corresponds to a type name.
+    """
+    if type_name is None:
+        return None
+    return type_name.split("(", 1)[0]
+    # return cast(DBAPIType, type_map.get(type_name, Blob))
+
+
+type_map = {
+    None: lambda x: x,
+    "INTEGER": lambda x: x,
+    "VARCHAR": lambda x: x,
+    "TEXT": lambda x: x,
+    "DATE": lambda x: None if x is None else datetime.date.fromisoformat(x),
+    "DATETIME": lambda x: None if x is None else datetime.datetime.fromisoformat(x),
+    "BOOLEAN": lambda x: x,
+    "FLOAT": lambda x: x,
+    "TIME": lambda x: None if x is None else datetime.time.fromisoformat(x),
+}
 
 
 def convert_binding(binding: Any) -> SQLiteValidType:
@@ -218,11 +234,15 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         SQLite only supports 5 types. For booleans and time-related types
         we need to do the conversion here.
         """
-        # TODO(cancan101): Can this entire method be removed
         if not self.description:
             return
 
-        yield from cursor
+        for row in cursor:
+            yield tuple(
+                # convert from SQLite types to native Python types
+                type_map[desc[1]](col)
+                for col, desc in zip(row, self.description)
+            )
 
     def _get_description(self) -> Description:
         """
@@ -238,7 +258,7 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         return [
             (
                 name,
-                type_name,  # get_type_code(type_name)
+                get_type_code(type_name),
                 None,
                 None,
                 None,
@@ -254,14 +274,13 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         operation: str,
         seq_of_parameters: Optional[List[Tuple[Any, ...]]] = None,
     ) -> "Cursor":
-        """
-        Execute multiple statements.
+        if seq_of_parameters is None:
+            return
 
-        Currently not supported.
-        """
-        raise NotSupportedError(
-            "``executemany`` is not supported, use ``execute`` instead",
-        )
+        for parameters in seq_of_parameters:
+            self.execute(operation, parameters=parameters)
+
+        return self
 
     @check_result
     @check_closed
