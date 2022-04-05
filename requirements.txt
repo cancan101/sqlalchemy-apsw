@@ -12,6 +12,10 @@ mypy==0.942
     # via sqlalchemy
 mypy-extensions==0.4.3
     # via mypy
+python-dateutil==2.8.2
+    # via -r requirements.in
+six==1.16.0
+    # via python-dateutil
 sqlalchemy[mypy]==1.4.34
     # via -r requirements.in
 sqlalchemy2-stubs==0.0.2a21

@@ -81,6 +81,6 @@ def TimestampFromTicks(ticks: int) -> datetime.datetime:  # pylint: disable=inva
     return Timestamp(*time.gmtime(ticks)[:6])
 
 
-def Binary(string: str) -> bytes:  # pylint: disable=invalid-name
+def Binary(string: bytes) -> bytes:  # pylint: disable=invalid-name
     """constructs an object capable of holding a binary (long) string value."""
-    return string.encode()
+    return string

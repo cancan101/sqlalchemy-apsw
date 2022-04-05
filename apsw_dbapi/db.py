@@ -21,6 +21,7 @@ from typing import (
 )
 
 import apsw
+import dateutil.parser
 
 from . import functions
 from .exceptions import Warning  # pylint: disable=redefined-builtin
@@ -100,10 +101,11 @@ type_map = {
     "INTEGER": lambda x: x,
     "VARCHAR": lambda x: x,
     "TEXT": lambda x: x,
-    "DATE": lambda x: None if x is None else datetime.date.fromisoformat(x),
-    "DATETIME": lambda x: None if x is None else datetime.datetime.fromisoformat(x),
+    "DATE": lambda x: None if x is None else dateutil.parser.isoparse(x).date(),
+    "DATETIME": lambda x: None if x is None else dateutil.parser.isoparse(x),
     "BOOLEAN": lambda x: x,
     "FLOAT": lambda x: x,
+    "BLOB": lambda x: x,
     "TIME": lambda x: None if x is None else datetime.time.fromisoformat(x),
 }
 
@@ -211,18 +213,13 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         if parameters:
             parameters = tuple(convert_binding(parameter) for parameter in parameters)
 
-        # this is where the magic happens: instead of forcing users to register
-        # their virtual tables explicitly, we do it for them when they first try
-        # to access them and it fails because the table doesn't exist yet
-        while True:
-            try:
-                self._cursor.execute(operation, parameters)
-                self.description = self._get_description()
-                self._results = self._convert(self._cursor)
-                break
-            except apsw.SQLError as ex:
-                message = ex.args[0]
-                raise ProgrammingError(message) from ex
+        try:
+            self._cursor.execute(operation, parameters)
+            self.description = self._get_description()
+            self._results = self._convert(self._cursor)
+        except apsw.SQLError as ex:
+            message = ex.args[0]
+            raise ProgrammingError(message) from ex
 
         return self
 
