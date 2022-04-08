@@ -270,9 +270,9 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         self,
         operation: str,
         seq_of_parameters: Optional[List[Tuple[Any, ...]]] = None,
-    ) -> "Cursor":
+    ) -> Optional["Cursor"]:
         if seq_of_parameters is None:
-            return
+            return None
 
         for parameters in seq_of_parameters:
             self.execute(operation, parameters=parameters)
