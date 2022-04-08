@@ -32,7 +32,6 @@ class APSWDialect(SQLiteDialect):
     The dialect is based on the ``SQLiteDialect``, since we're using APSW.
     """
 
-    name = "sqlite"
     driver = "apsw"
 
     # This is supported in ``SQLiteDialect``, and equally supported here. See

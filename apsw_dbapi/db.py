@@ -92,6 +92,10 @@ def get_type_code(type_name: Optional[str]) -> Optional[str]:  # DBAPIType
     """
     if type_name is None:
         return None
+    # Yes this is right.
+    # See pysqlite3:
+    # https://github.com/coleifer/pysqlite3/blob/03081403a1dca0c5085c45e9ed42e26cc97ea752/src/cursor.c#L166-L169
+    # Though perhaps this should be in apsw
     return type_name.split("(", 1)[0]
     # return cast(DBAPIType, type_map.get(type_name, Blob))
 
@@ -105,6 +109,7 @@ type_map = {
     "DATETIME": lambda x: None if x is None else dateutil.parser.isoparse(x),
     "BOOLEAN": lambda x: x,
     "FLOAT": lambda x: x,
+    "NUMERIC": lambda x: x,
     "BLOB": lambda x: x,
     "TIME": lambda x: None if x is None else datetime.time.fromisoformat(x),
 }

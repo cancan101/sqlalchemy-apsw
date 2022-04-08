@@ -17,3 +17,7 @@ class Requirements(SuiteRequirements):
         a plain string."""
         # The type of datetimes are lost when formatted and passed to execute
         return exclusions.closed()
+
+    @property
+    def sane_rowcount(self):
+        return exclusions.closed()

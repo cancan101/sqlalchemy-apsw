@@ -1,3 +1,4 @@
-apsw
+# Removing this as it is not particularly useful to have it here:
+# apsw
 sqlalchemy[mypy]
 python-dateutil

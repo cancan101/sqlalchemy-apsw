@@ -4,8 +4,6 @@
 #
 #    pip-compile requirements.in
 #
-apsw==3.9.2.post1
-    # via -r requirements.in
 greenlet==1.1.2
     # via sqlalchemy
 mypy==0.942
