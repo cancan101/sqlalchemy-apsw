@@ -16,42 +16,14 @@ DATETIME = DBAPIType("DATETIME")
 ROWID = DBAPIType("ROWID")
 
 
-def Date(  # pylint: disable=invalid-name
-    year: int,
-    month: int,
-    day: int,
-) -> datetime.date:
-    """Constructs an object holding a date value."""
-    return datetime.date(year, month, day)
+"""Constructs an object holding a date value."""
+Date = datetime.date
 
+"""Constructs an object holding a time value."""
+Time = datetime.time
 
-def Time(  # pylint: disable=invalid-name
-    hour: int,
-    minute: int,
-    second: int,
-) -> datetime.time:
-    """Constructs an object holding a time value."""
-    return datetime.time(hour, minute, second, tzinfo=datetime.timezone.utc)
-
-
-def Timestamp(  # pylint: disable=invalid-name, too-many-arguments
-    year: int,
-    month: int,
-    day: int,
-    hour: int,
-    minute: int,
-    second: int,
-) -> datetime.datetime:
-    """Constructs an object holding a timestamp value."""
-    return datetime.datetime(
-        year,
-        month,
-        day,
-        hour,
-        minute,
-        second,
-        tzinfo=datetime.timezone.utc,
-    )
+"""Constructs an object holding a timestamp value."""
+Timestamp = datetime.datetime
 
 
 def DateFromTicks(ticks: int) -> datetime.date:  # pylint: disable=invalid-name
@@ -81,6 +53,5 @@ def TimestampFromTicks(ticks: int) -> datetime.datetime:  # pylint: disable=inva
     return Timestamp(*time.gmtime(ticks)[:6])
 
 
-def Binary(string: bytes) -> bytes:  # pylint: disable=invalid-name
-    """constructs an object capable of holding a binary (long) string value."""
-    return string
+"""constructs an object capable of holding a binary (long) string value."""
+Binary = memoryview

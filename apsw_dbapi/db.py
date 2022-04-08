@@ -119,7 +119,7 @@ def convert_binding(binding: Any) -> SQLiteValidType:
     """
     if isinstance(binding, bool):
         return int(binding)
-    if isinstance(binding, (int, float, str, bytes, type(None))):
+    if isinstance(binding, (int, float, str, bytes, type(None), memoryview)):
         return binding
     if isinstance(binding, (datetime.datetime, datetime.date, datetime.time)):
         return binding.isoformat()
