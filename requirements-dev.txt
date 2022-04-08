@@ -4,8 +4,6 @@
 #
 #    pip-compile requirements-dev.in
 #
-apsw==3.9.2.post1
-    # via -r requirements.txt
 attrs==21.4.0
     # via
     #   flake8-bugbear
@@ -125,14 +123,18 @@ pytest==7.1.1
     #   pytest-cov
 pytest-cov==3.0.0
     # via -r requirements-dev.in
+python-dateutil==2.8.2
+    # via -r requirements.txt
 pyyaml==6.0
     # via
     #   bandit
     #   pre-commit
 six==1.16.0
     # via
+    #   -r requirements.txt
     #   flake8-debugger
     #   flake8-print
+    #   python-dateutil
     #   virtualenv
 smmap==5.0.0
     # via gitdb
@@ -157,6 +159,8 @@ tomli==2.0.1
     #   mypy
     #   pep517
     #   pytest
+types-python-dateutil==2.8.10
+    # via -r requirements-dev.in
 types-setuptools==57.4.11
     # via -r requirements-dev.in
 typing-extensions==4.1.1

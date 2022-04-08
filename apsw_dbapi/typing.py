@@ -9,7 +9,7 @@ Description = Optional[
     List[
         Tuple[
             str,
-            str,  # type_code. Perhaps this should be of type DBAPIType
+            Optional[str],  # type_code. Perhaps this should be of type DBAPIType
             Optional[str],
             Optional[str],
             Optional[str],

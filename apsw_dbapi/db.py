@@ -21,6 +21,7 @@ from typing import (
 )
 
 import apsw
+import dateutil.parser
 
 from . import functions
 from .exceptions import Warning  # pylint: disable=redefined-builtin
@@ -85,11 +86,33 @@ def check_result(method: CURSOR_METHOD) -> CURSOR_METHOD:
     return cast(CURSOR_METHOD, wrapper)
 
 
-# def get_type_code(type_name: str) -> DBAPIType:
-#     """
-#     Return a ``DBAPIType`` that corresponds to a type name.
-#     """
-#     return cast(DBAPIType, type_map.get(type_name, Blob))
+def get_type_code(type_name: Optional[str]) -> Optional[str]:  # DBAPIType
+    """
+    Return a ``DBAPIType`` that corresponds to a type name.
+    """
+    if type_name is None:
+        return None
+    # Yes this is right.
+    # See pysqlite3:
+    # https://github.com/coleifer/pysqlite3/blob/03081403a1dca0c5085c45e9ed42e26cc97ea752/src/cursor.c#L166-L169
+    # Though perhaps this should be in apsw
+    return type_name.split("(", 1)[0]
+    # return cast(DBAPIType, type_map.get(type_name, Blob))
+
+
+type_map = {
+    None: lambda x: x,
+    "INTEGER": lambda x: x,
+    "VARCHAR": lambda x: x,
+    "TEXT": lambda x: x,
+    "DATE": lambda x: None if x is None else dateutil.parser.isoparse(x).date(),
+    "DATETIME": lambda x: None if x is None else dateutil.parser.isoparse(x),
+    "BOOLEAN": lambda x: x,
+    "FLOAT": lambda x: x,
+    "NUMERIC": lambda x: x,
+    "BLOB": lambda x: x,
+    "TIME": lambda x: None if x is None else datetime.time.fromisoformat(x),
+}
 
 
 def convert_binding(binding: Any) -> SQLiteValidType:
@@ -101,7 +124,7 @@ def convert_binding(binding: Any) -> SQLiteValidType:
     """
     if isinstance(binding, bool):
         return int(binding)
-    if isinstance(binding, (int, float, str, bytes, type(None))):
+    if isinstance(binding, (int, float, str, bytes, type(None), memoryview)):
         return binding
     if isinstance(binding, (datetime.datetime, datetime.date, datetime.time)):
         return binding.isoformat()
@@ -195,18 +218,13 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         if parameters:
             parameters = tuple(convert_binding(parameter) for parameter in parameters)
 
-        # this is where the magic happens: instead of forcing users to register
-        # their virtual tables explicitly, we do it for them when they first try
-        # to access them and it fails because the table doesn't exist yet
-        while True:
-            try:
-                self._cursor.execute(operation, parameters)
-                self.description = self._get_description()
-                self._results = self._convert(self._cursor)
-                break
-            except apsw.SQLError as ex:
-                message = ex.args[0]
-                raise ProgrammingError(message) from ex
+        try:
+            self._cursor.execute(operation, parameters)
+            self.description = self._get_description()
+            self._results = self._convert(self._cursor)
+        except apsw.SQLError as ex:
+            message = ex.args[0]
+            raise ProgrammingError(message) from ex
 
         return self
 
@@ -218,11 +236,15 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         SQLite only supports 5 types. For booleans and time-related types
         we need to do the conversion here.
         """
-        # TODO(cancan101): Can this entire method be removed
         if not self.description:
             return
 
-        yield from cursor
+        for row in cursor:
+            yield tuple(
+                # convert from SQLite types to native Python types
+                type_map[desc[1]](col)
+                for col, desc in zip(row, self.description)
+            )
 
     def _get_description(self) -> Description:
         """
@@ -238,7 +260,7 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         return [
             (
                 name,
-                type_name,  # get_type_code(type_name)
+                get_type_code(type_name),
                 None,
                 None,
                 None,
@@ -253,15 +275,14 @@ class Cursor:  # pylint: disable=too-many-instance-attributes
         self,
         operation: str,
         seq_of_parameters: Optional[List[Tuple[Any, ...]]] = None,
-    ) -> "Cursor":
-        """
-        Execute multiple statements.
+    ) -> Optional["Cursor"]:
+        if seq_of_parameters is None:
+            return None
 
-        Currently not supported.
-        """
-        raise NotSupportedError(
-            "``executemany`` is not supported, use ``execute`` instead",
-        )
+        for parameters in seq_of_parameters:
+            self.execute(operation, parameters=parameters)
+
+        return self
 
     @check_result
     @check_closed
