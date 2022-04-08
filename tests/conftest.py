@@ -1,4 +1,4 @@
-from sqlalchemy.dialects import registry # type: ignore
+from sqlalchemy.dialects import registry  # type: ignore
 import pytest
 
 # In case we haven't installed the package, we can still use the dialect
