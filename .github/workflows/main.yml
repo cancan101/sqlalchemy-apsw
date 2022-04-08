@@ -30,7 +30,7 @@ jobs:
 
       - name: Test with black
         run: |
-          black . --check --target-version py39
+          black . --check --target-version py37
 
       # Turn this off for the time being
       # - name: Test with flake8

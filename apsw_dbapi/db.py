@@ -86,7 +86,7 @@ def check_result(method: CURSOR_METHOD) -> CURSOR_METHOD:
     return cast(CURSOR_METHOD, wrapper)
 
 
-def get_type_code(type_name: Optional[str]) -> Optional[str]: # DBAPIType
+def get_type_code(type_name: Optional[str]) -> Optional[str]:  # DBAPIType
     """
     Return a ``DBAPIType`` that corresponds to a type name.
     """
